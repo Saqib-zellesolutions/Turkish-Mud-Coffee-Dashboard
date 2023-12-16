@@ -128,7 +128,8 @@ export default function Login() {
         className="main-login glass-morphism"
       >
         <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbU1IK9aZSLEhdjfimG48GaU6RKmKxGp7UlaNBYMnN-g&s"
+          src={require("../../assets/coffeeLogo.jpg")}
+          // src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbU1IK9aZSLEhdjfimG48GaU6RKmKxGp7UlaNBYMnN-g&s"
           style={{
             width: "80px",
             height: "80px",
