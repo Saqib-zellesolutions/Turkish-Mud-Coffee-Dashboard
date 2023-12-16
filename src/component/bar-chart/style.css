@@ -1,0 +1,4 @@
+.custom-bar-chart rect {
+  fill: #000 !important; /* Bar color */
+  width: 30px !important; /* Bar width */
+}
