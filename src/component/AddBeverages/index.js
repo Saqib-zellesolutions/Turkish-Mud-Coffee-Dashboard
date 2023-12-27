@@ -28,7 +28,7 @@ function AddBeverages() {
   const [sku, setSku] = useState("");
   const [stock, setStock] = useState(true);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState([]);
-  const [loading, setLoading] = (useState = false);
+  const [loading, setLoading] = useState(false);
   const priceVariable = Number(price);
   const skuVariable = Number(sku);
 
