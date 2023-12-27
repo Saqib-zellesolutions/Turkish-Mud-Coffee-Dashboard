@@ -22,6 +22,7 @@ import {
   useTheme,
 } from "@mui/material";
 import React from "react";
+import { ImageUrl } from "../../config/env";
 
 const style = {
   position: "absolute",
@@ -168,7 +169,7 @@ export default function OrderItemModal({
                                       ? e.variation.images.map((image, i) => (
                                           <img
                                             key={i}
-                                            src={image}
+                                            src={`${ImageUrl}/${image}`}
                                             width={50}
                                             height={50}
                                             style={{ marginRight: 10 }}

@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Container,
   FormControl,
   FormControlLabel,
@@ -26,13 +27,13 @@ function Product() {
   const [price, setPrice] = useState("");
   const [sku, setSku] = useState("");
   const [stock, setStock] = useState(true);
-  const [imageData, setImageData] = useState([]);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState([]);
-  const [cloudImage, setCloudImage] = useState([]);
+  const [loading, setLoading] = useState(false);
   const priceVariable = Number(price);
   const skuVariable = Number(sku);
-  console.log(categoryId, "categoryId");
+
   const branch = localStorage.getItem("branchName");
+
   useEffect(() => {
     const getCategory = () => {
       var requestOptions = {
@@ -55,68 +56,40 @@ function Product() {
     };
     getCategory();
   }, []);
+
   const handleGalleryImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const gFiles = e.target.files[0];
-    setImageData((gallery) => [...gallery, gFiles]);
     const images = files.map((file) => ({
       file,
       url: URL.createObjectURL(file),
     }));
     setSelectedGalleryImages((prevImages) => [...prevImages, ...images]);
   };
-  const uploadImages = async (e) => {
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setCloudImage((prevArray) => [...prevArray, data.url]);
-      })
-      .catch((error) => {
-        toast.error("image is not uploaded");
-      });
-  };
-  const SaveImages = () => {
-    let newUrl = [];
-    for (let i of imageData) {
-      newUrl.push(uploadImages(i));
-      toast.success("gallery images uploaded successfully!");
-    }
 
-    if (newUrl.length > 1) {
-      toast.success("gallery images uploaded successfully!");
-    }
+  const SaveImages = () => {
+    // Process selected gallery images here (upload to server or handle as needed)
+    toast.success("Gallery images saved successfully!");
   };
+
   const addProduct = async () => {
-    if (
-      // (!name, !description, !skuVariable, !priceVariable, !cloudImage.length)
-      (!name, !description, !skuVariable, !priceVariable)
-    ) {
+    if (!name || !description || !skuVariable || !priceVariable) {
       toast.error("Please Fill Inputs");
     } else {
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      var raw = JSON.stringify({
-        name: name,
-        description: description,
-        sku: skuVariable,
-        // images:
-        //   "https://img.freepik.com/free-photo/close-up-coffee-cup-wooden-table-steam-rising-generative-ai_188544-8921.jpg?w=1060&t=st=1702351148~exp=1702351748~hmac=05b35448a74f40a2e83f7aba56ff07ee5cc08e89e8db7e2f64dec6a9bbbbd86e",
-        images: cloudImage,
-        price: priceVariable,
-        instock: stock,
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("sku", sku);
+      formData.append("price", price);
+      formData.append("instock", stock);
+
+      selectedGalleryImages.forEach((image, index) => {
+        formData.append("images", image.file);
       });
 
       var requestOptions = {
         method: "POST",
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow",
+        body: formData,
       };
 
       fetch(
@@ -127,16 +100,15 @@ function Product() {
       )
         .then((response) => response.json())
         .then((result) => {
+          console.log(result, "re");
+          setLoading(false);
           if (result.addData) {
-            console.log(result, "re");
-            toast.success("successfully product add");
-            // window.location.reload();
             setName("");
             setDescription("");
-            setImageData([]);
             setSku(0);
             setPrice(0);
             setStock(true);
+            setSelectedGalleryImages([]);
           } else {
             toast.error(result.message);
           }
@@ -144,9 +116,11 @@ function Product() {
         .catch((error) => {
           console.log(error, "err");
           toast.error(error);
+          setLoading(false);
         });
     }
   };
+
   return (
     <Container sx={{ mt: 5 }} maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 2 }}>
@@ -305,15 +279,13 @@ function Product() {
                 onClick={addProduct}
                 fullWidth
               >
-                Add Product
+                {loading ? <CircularProgress size={24} /> : "Add Product"}
               </Button>
             </Grid>
           </Box>
         </Grid>
         <Grid item xs={4}>
           <Box
-            // component="form"
-            // component={Paper}
             rowrpacing={1}
             columnspacing={{ xs: 1, sm: 2, md: 3 }}
             className="main-order-table glass-morphism"

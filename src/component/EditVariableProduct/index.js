@@ -13,16 +13,14 @@ import {
   Select,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { BranchFunction, LocalUrl } from "../../config/env";
 
 function EditVariationProduct() {
   const location = useLocation();
-  console.log(location.state);
   const [name, setName] = useState(location.state.name);
   const [description, setDescription] = useState(location.state.description);
   const [sku, setSku] = useState(location.state.sku);
@@ -37,17 +35,12 @@ function EditVariationProduct() {
   const variationPriceNumber = Number(variationPrice);
   const [stock, setStock] = useState(true);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState([]);
-  const [cloudImage, setCloudImage] = useState(location.state.image);
-  const [variationCloudImage, setVariationCloudImage] = useState([]);
   const [imageFile, setImageFile] = useState(location.state.image);
-  const [loader, setLoading] = useState(false);
   const [multipleVariation, setMultipleVariation] = useState(
     location.state.variation
   );
-  const [updateModal, setUpdateModal] = useState(false);
   const [variationId, setVariationId] = useState("");
   const branch = localStorage.getItem("branchName");
-  //   const [location.state, setlocation.state] = useState({});
   let variationEdit = (e) => {
     setVariationId(e);
     const changeVariation = multipleVariation.find((v) => v._id === e);
@@ -56,100 +49,64 @@ function EditVariationProduct() {
     setVariationSku(changeVariation.sku);
     setVariationPrice(changeVariation.price);
     setStock(changeVariation.stock);
-    setVariationImageData(changeVariation.images);
-    setVariationCloudImage(changeVariation.images);
-    setVariationImageData(changeVariation.images);
+    // setVariationImageData(changeVariation.images);
+    // setSelectedGalleryImages(changeVariation.images);
   };
-  useEffect(() => {
-    if (cloudImage && !location.state._id) {
-      if (
-        (!name,
-        !description ||
-          !skuNumber ||
-          !cloudImage.length ||
-          // !stock ||
-          !multipleVariation.length)
-      ) {
-        console.log("he;lll");
-        toast.error("Please Fill Input");
-      } else {
-        return;
-      }
-    } else if (cloudImage && location.state._id) {
-      if (
-        !variationCloudImage.length ||
-        !stock ||
-        !variationName ||
-        !variationDescription ||
-        !variationPriceNumber ||
-        !variationSkuNumber
-      ) {
-        toast.error("Please Fill Input");
-        return;
-      }
-      let updateEdit = () => {
-        const updatedVariation = {
-          _id: variationId,
-          name: variationName,
-          description: variationDescription,
-          sku: variationSkuNumber,
-          images: variationCloudImage,
-          price: variationPriceNumber,
-          instock: stock,
-        };
+  let updateEdit = () => {
+    const updatedVariation = {
+      _id: variationId,
+      name: variationName,
+      description: variationDescription,
+      sku: variationSkuNumber,
+      images: selectedGalleryImages.map((e) => {
+        return e.file ? e.file : e;
+      }), // Update this line
+      price: variationPriceNumber,
+      instock: stock === true,
+    };
 
-        const newUpdatedVariation = multipleVariation.map((v) =>
-          v._id === updatedVariation._id ? updatedVariation : v
-        );
-        var myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/json");
-        var raw = JSON.stringify({
-          name: name,
-          description: description,
-          sku: sku,
-          image: cloudImage ? cloudImage : location.state.image,
-          variation: newUpdatedVariation,
-        });
-        var requestOptions = {
-          method: "PUT",
-          headers: myHeaders,
-          body: raw,
-          redirect: "follow",
-        };
+    const newUpdatedVariation = multipleVariation.map((v) =>
+      v._id === updatedVariation._id ? updatedVariation : v
+    );
+    var formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("sku", skuNumber);
+    formData.append("image", imageFile);
+    formData.append("variation", JSON.stringify(newUpdatedVariation));
+    newUpdatedVariation.forEach((data) => {
+      return data.images?.forEach((image) => formData.append("images", image));
+    });
+    newUpdatedVariation.forEach((data) => {
+      console.log(data.images);
+    });
 
-        fetch(
-          `${LocalUrl}/VariableProduct/${BranchFunction(
-            branch
-          )}/Update-VariableProduct/${location.state._id}/${branch}`,
-          // `${
-          //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-          // }/VariableProduct/edit-product/${location.state._id}`,
-          requestOptions
-        )
-          .then((response) => response.json())
-          .then((result) => {
-            window.location.reload();
-            setName("");
-            setDescription("");
-            setSku("");
-            setCloudImage("");
-            setMultipleVariation([]);
-            setSelectedGalleryImages([]);
-            toast.success(result.message);
-          })
-          .catch((error) => {
-            toast.error(error.message);
-          });
-      };
-      updateEdit();
-    }
-  }, [cloudImage]);
-  useEffect(() => {
-    if (variationCloudImage.length === variationImageData.length) {
-      setLoading(false);
-    }
-  }, [variationCloudImage]);
+    var requestOptions = {
+      method: "PUT",
+      body: formData,
+    };
 
+    fetch(
+      `${LocalUrl}/VariableProduct/${BranchFunction(
+        branch
+      )}/Update-VariableProduct/${location.state._id}/${branch}`,
+      requestOptions
+    )
+      .then((response) => response.json())
+      .then((result) => {
+        // window.location.reload();
+        console.log(result);
+        setName("");
+        setDescription("");
+        setSku("");
+        setMultipleVariation([]);
+        setSelectedGalleryImages([]);
+        toast.success(result.message);
+      })
+      .catch((error) => {
+        toast.error(error.message);
+      });
+  };
   const handleGalleryImageChange = (e) => {
     const files = Array.from(e.target.files);
     const gFiles = e.target.files[0];
@@ -166,43 +123,9 @@ function EditVariationProduct() {
 
     setImageFile(file);
   };
-  const uploadImages = async (e, name) => {
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (name === "multipleImage") {
-          setVariationCloudImage((prevArray) => [...prevArray, data.url]);
-        } else {
-          setLoading(false);
-
-          setCloudImage(data.url);
-        }
-      })
-      .catch((error) => {
-        toast.error("image is not uploaded");
-      });
-  };
   const SaveImages = (e, imgData) => {
-    let newUrl = [];
-    for (let i of imgData) {
-      newUrl.push(uploadImages(i, e));
-      toast.success("gallery images uploaded successfully!");
-    }
-
-    if (newUrl.length > 1) {
-      toast.success("gallery images uploaded successfully!");
-    }
+    console.log("hello");
   };
-  const theme = useTheme();
-  const navigate = useNavigate();
   return (
     <Container sx={{ mt: 5 }} maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 2 }}>
@@ -438,9 +361,7 @@ function EditVariationProduct() {
                       <Button
                         variant="contained"
                         value=""
-                        onClick={() =>
-                          SaveImages("multipleImage", variationImageData)
-                        }
+                        onClick={() => SaveImages()}
                         color="secondary"
                       >
                         Save Images
@@ -478,33 +399,12 @@ function EditVariationProduct() {
                 </Grid>
               </Grid>
               <Grid container spacing={2} style={{ marginTop: 10 }}>
-                {/* <Grid xs={6} item>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={() => {
-                      saveVariation();
-                    }}
-                    color="secondary"
-                  >
-                    Save Variation
-                  </Button>
-                </Grid> */}
                 <Grid xs={6} item>
                   <Button
                     variant="contained"
                     fullWidth
                     onClick={async () => {
-                      if (!imageFile) {
-                        if (location.state.image) {
-                          setCloudImage(location.state.image);
-                        } else {
-                          toast.error("upload a product image");
-                          return;
-                        }
-                      }
-                      SaveImages("single", [imageFile]);
-                      // addVariableProduct();
+                      updateEdit();
                     }}
                     color="secondary"
                   >
@@ -512,7 +412,6 @@ function EditVariationProduct() {
                   </Button>
                 </Grid>
               </Grid>
-              {/* )} */}
             </>
           </Box>
         </Grid>

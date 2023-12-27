@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Container,
   FormControl,
   FormControlLabel,
@@ -42,20 +43,16 @@ function VariableProduct() {
   const variationPriceNumber = Number(variationPrice);
   const [stock, setStock] = useState(true);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState([]);
-  const [cloudImage, setCloudImage] = useState("");
-  const [variationCloudImage, setVariationCloudImage] = useState([]);
   const [imageFile, setImageFile] = useState("");
-  const [loader, setLoading] = useState(false);
   const [multipleVariation, setMultipleVariation] = useState([]);
   const branch = localStorage.getItem("branchName");
+  const [loading, setLoading] = useState(false);
   let saveVariation = () => {
-    // const findImages=[]
     if (
       !variationName ||
       !variationDescription ||
       !variationSkuNumber ||
       !variationPriceNumber ||
-      !variationCloudImage.length ||
       !stock
     ) {
       toast.error("Please Fill Variation Input");
@@ -66,9 +63,12 @@ function VariableProduct() {
         description: variationDescription,
         sku: variationSkuNumber,
         price: variationPriceNumber,
-        images: variationCloudImage,
         instock: stock,
+        images: selectedGalleryImages?.map((e) => {
+          return e;
+        }),
       };
+
       setMultipleVariation([...multipleVariation, variationData]);
       setVariationName("");
       setVariationDescription("");
@@ -77,9 +77,9 @@ function VariableProduct() {
       setVariationImageData([]);
       setStock("");
       setSelectedGalleryImages([]);
-      setVariationCloudImage([]);
     }
   };
+
   useEffect(() => {
     var requestOptions = {
       method: "GET",
@@ -96,117 +96,74 @@ function VariableProduct() {
       })
       .catch((error) => console.log("error", error));
   }, []);
-  useEffect(() => {
-    const addVariableProduct = () => {
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
 
-      var raw = JSON.stringify({
-        name: name,
-        description: description,
-        sku: skuNumber,
-        image: cloudImage,
-        variation: multipleVariation,
-      });
+  console.log(multipleVariation);
+  const addVariableProduct = async () => {
+    setLoading(true);
+    var formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("sku", skuNumber);
+    formData.append("categoryId", categoryId);
+    formData.append("image", imageFile);
+    formData.append("variation", JSON.stringify(multipleVariation));
+    multipleVariation.forEach((data) => {
+      data.images?.map((image) => formData.append("images", image.file));
+    });
+    var requestOptions = {
+      method: "POST",
+      body: formData,
+    };
 
-      var requestOptions = {
-        method: "POST",
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow",
-      };
-
-      fetch(
+    try {
+      const response = await fetch(
         `${LocalUrl}/VariableProduct/${BranchFunction(
           branch
         )}/Add-VariableProduct/${categoryId}/${branch}`,
-        // `${
-        //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-        // }/VariableProduct/addProduct/${categoryId}`,
         requestOptions
-      )
-        .then((response) => response.json())
-        .then((result) => {
-          setName("");
-          setImageData("");
-          setDescription("");
-          setSku(0);
-          setMultipleVariation([]);
-          // window.location.reload();
-        })
-        .catch((error) => console.log("error", error));
-      setVariation(!variation);
-    };
-    if (
-      (!name,
-      !description ||
-        !skuNumber ||
-        !cloudImage ||
-        // !stock ||
-        !multipleVariation)
-    ) {
-      toast.error("Please Fill Input");
-    } else {
-      addVariableProduct();
-    }
-  }, [cloudImage]);
-  useEffect(() => {
-    if (variationCloudImage.length === variationImageData.length) {
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(result, "res");
+        setLoading(false);
+        setName("");
+        setImageData("");
+        setDescription("");
+        setSku(0);
+        setMultipleVariation([]);
+        // window.location.reload();
+      } else {
+        toast.error("Failed to add variable product");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error occurred while adding variable product");
       setLoading(false);
     }
-  }, [variationCloudImage]);
+
+    setVariation(!variation);
+  };
 
   const handleGalleryImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const gFiles = e.target.files[0];
-    setVariationImageData((gallery) => [...gallery, gFiles]);
     const images = files.map((file) => ({
       file,
       url: URL.createObjectURL(file),
     }));
     setSelectedGalleryImages((prevImages) => [...prevImages, ...images]);
   };
+
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImageData(URL.createObjectURL(file));
-
-    setImageFile(file);
+    const selectedFile = e.target.files[0];
+    setImageFile(selectedFile);
+    setImageData(URL.createObjectURL(selectedFile));
   };
-  const uploadImages = async (e, name) => {
-    setLoading(true);
 
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (name === "multipleImage") {
-          setVariationCloudImage((prevArray) => [...prevArray, data.url]);
-        } else {
-          setLoading(false);
-
-          setCloudImage(data.url);
-        }
-      })
-      .catch((error) => {
-        toast.error("image is not uploaded");
-      });
-  };
   const SaveImages = (e, imgData) => {
-    let newUrl = [];
-    for (let i of imgData) {
-      newUrl.push(uploadImages(i, e));
-      toast.success("gallery images uploaded successfully!");
-    }
-
-    if (newUrl.length > 1) {
-      toast.success("gallery images uploaded successfully!");
-    }
+    console.log("hello");
   };
+
   const addVariations = () => {
     setVariation(!variation);
   };
@@ -567,11 +524,15 @@ function VariableProduct() {
                       variant="contained"
                       fullWidth
                       onClick={async () => {
-                        SaveImages("single", [imageFile]);
+                        addVariableProduct();
                       }}
                       color="secondary"
                     >
-                      Add Variable Product
+                      {loading ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        "Add Variable Product"
+                      )}
                     </Button>
                   </Grid>
                 </Grid>

@@ -13,6 +13,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { ImageUrl } from "../../config/env";
 export default function NewTable({
   data,
   theme,
@@ -63,20 +64,23 @@ export default function NewTable({
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" color="text.secondary" noWrap>
-                        {e?.images?.map((image, i) => (
-                          <img
-                            onClick={() => OpenImageModal(e)}
-                            key={i}
-                            src={image}
-                            width={50}
-                            height={50}
-                            style={{
-                              marginRight: 10,
-                              borderRadius: "8px",
-                              cursor: "pointer",
-                            }}
-                          />
-                        ))}
+                        {e?.images?.map((image, i) => {
+                          return (
+                            <img
+                              onClick={() => OpenImageModal(e)}
+                              key={i}
+                              src={`${ImageUrl}/${image}`}
+                              // src={image}
+                              width={50}
+                              height={50}
+                              style={{
+                                marginRight: 10,
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                              }}
+                            />
+                          );
+                        })}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -133,20 +137,6 @@ export default function NewTable({
           </TableBody>
         </Table>
       </TableContainer>
-      {/* <Box p={2}>
-              <TablePagination
-                component="div"
-                count={data?.length}
-                onPageChange={handlePageChange}
-                onRowsPerPageChange={handleLimitChange}
-                page={page}
-                rowsPerPage={limit}
-                rowsPerPageOptions={[5, 10, 25, 30]}
-              />
-            </Box> */}
     </Card>
-    //     </Grid>
-    //   </Grid>
-    // </Container>
   );
 }

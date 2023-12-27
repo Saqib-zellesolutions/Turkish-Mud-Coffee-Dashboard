@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DashboardRoutes from "../../config/dashboardRoutes";
-import { LocalUrl } from "../../config/env";
+import { BranchFunction, LocalUrl } from "../../config/env";
 import {
   Coffee,
   CreditCard,
@@ -42,7 +42,7 @@ function Dasboard() {
       redirect: "follow",
     };
 
-    fetch(`${LocalUrl}/authentictaion/logout`, requestOptions)
+    fetch(`${LocalUrl}/Authentication/${BranchFunction(branch)}/SignOut`, requestOptions)
       .then((response) => response.json())
       .then((result) => {
         localStorage.removeItem("token");

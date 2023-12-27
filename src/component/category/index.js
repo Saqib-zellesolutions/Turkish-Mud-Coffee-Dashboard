@@ -10,7 +10,7 @@ import {
   Grid,
   IconButton,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -22,12 +22,10 @@ import { useTheme } from "@mui/material/styles";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { BranchFunction, LocalUrl } from "../../config/env";
+import { BranchFunction, ImageUrl, LocalUrl } from "../../config/env";
 function AddCategory() {
   const [allCategory, setAllCategory] = useState("");
-  const [open, setOpen] = useState(false);
   const [isloading, setIsLoading] = useState(true);
-  const handleClose = () => setOpen(false);
   const navigate = useNavigate();
   const branch = localStorage.getItem("branchName");
 
@@ -45,6 +43,7 @@ function AddCategory() {
       .then((result) => {
         setIsLoading(false);
         setAllCategory(result.categories);
+        console.log(result.categories);
       })
       .catch((error) => {
         console.log("error", error);
@@ -149,7 +148,7 @@ function AddCategory() {
                   </TableHead>
                   <TableBody>
                     {allCategory.length ? (
-                      allCategory?.map((e, index) => (
+                      allCategory?.map((e) => (
                         <TableRow hover key={e?._id}>
                           <TableCell align="left">{e.name}</TableCell>
                           <TableCell align="left">
@@ -160,7 +159,7 @@ function AddCategory() {
                               className="product-table-text"
                             >
                               <img
-                                src={e.image}
+                                src={`${ImageUrl}/${e.image}`}
                                 alt=""
                                 width={50}
                                 height={50}
@@ -176,7 +175,7 @@ function AddCategory() {
                               className="product-table-text"
                             >
                               <img
-                                src={e.banner_image}
+                                src={`${ImageUrl}/${e.banner_image}`}
                                 alt=""
                                 width={50}
                                 height={50}

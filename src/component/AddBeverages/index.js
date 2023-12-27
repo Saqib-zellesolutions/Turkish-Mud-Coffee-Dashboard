@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Container,
   FormControl,
   FormControlLabel,
@@ -15,10 +16,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
-import ProdcutImage from "../../assets/productImage.png";
-import { Gallery } from "../../config/icon";
 import { toast } from "react-toastify";
+import { BranchFunction, LocalUrl } from "../../config/env";
+import { Gallery } from "../../config/icon";
 function AddBeverages() {
   const [categories, setCategories] = useState();
   const [categoryId, setCategoryId] = useState("");
@@ -27,12 +27,13 @@ function AddBeverages() {
   const [price, setPrice] = useState("");
   const [sku, setSku] = useState("");
   const [stock, setStock] = useState(true);
-  const [imageData, setImageData] = useState([]);
   const [selectedGalleryImages, setSelectedGalleryImages] = useState([]);
-  const [cloudImage, setCloudImage] = useState([]);
+  const [loading, setLoading] = (useState = false);
   const priceVariable = Number(price);
   const skuVariable = Number(sku);
+
   const branch = localStorage.getItem("branchName");
+
   useEffect(() => {
     const getCategory = () => {
       var requestOptions = {
@@ -46,6 +47,7 @@ function AddBeverages() {
       )
         .then((response) => response.json())
         .then((result) => {
+          console.log(result);
           setCategories(result.categories);
         })
         .catch((error) => {
@@ -54,65 +56,40 @@ function AddBeverages() {
     };
     getCategory();
   }, []);
+
   const handleGalleryImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const gFiles = e.target.files[0];
-    setImageData((gallery) => [...gallery, gFiles]);
     const images = files.map((file) => ({
       file,
       url: URL.createObjectURL(file),
     }));
     setSelectedGalleryImages((prevImages) => [...prevImages, ...images]);
   };
-  const uploadImages = async (e) => {
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setCloudImage((prevArray) => [...prevArray, data.url]);
-      })
-      .catch((error) => {
-        toast.error("image is not uploaded");
-      });
-  };
-  const SaveImages = () => {
-    let newUrl = [];
-    for (let i of imageData) {
-      newUrl.push(uploadImages(i));
-      toast.success("gallery images uploaded successfully!");
-    }
 
-    if (newUrl.length > 1) {
-      toast.success("gallery images uploaded successfully!");
-    }
+  const SaveImages = () => {
+    // Process selected gallery images here (upload to server or handle as needed)
+    toast.success("Gallery images saved successfully!");
   };
+
   const addProduct = async () => {
-    if (
-      (!name, !description, !skuVariable, !priceVariable, !cloudImage.length)
-    ) {
+    if (!name || !description || !skuVariable || !priceVariable) {
       toast.error("Please Fill Inputs");
     } else {
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      var raw = JSON.stringify({
-        name: name,
-        description: description,
-        sku: skuVariable,
-        images: cloudImage,
-        price: priceVariable,
-        instock: stock,
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("sku", sku);
+      formData.append("price", price);
+      formData.append("instock", stock);
+
+      selectedGalleryImages.forEach((image, index) => {
+        formData.append("images", image.file);
       });
 
       var requestOptions = {
         method: "POST",
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow",
+        body: formData,
       };
 
       fetch(
@@ -123,24 +100,30 @@ function AddBeverages() {
       )
         .then((response) => response.json())
         .then((result) => {
-          toast.success("successfully product add");
-          window.location.reload();
-          setName("");
-          setDescription("");
-          setImageData([]);
-          setSku(0);
-          setPrice(0);
-          setStock(true);
+          setLoading(false);
+          if (result.addData) {
+            setName("");
+            setDescription("");
+            setSku(0);
+            setPrice(0);
+            setStock(true);
+            setSelectedGalleryImages([]);
+          } else {
+            toast.error(result.message);
+          }
         })
         .catch((error) => {
+          console.log(error, "err");
           toast.error(error);
+          setLoading(false);
         });
     }
   };
+
   return (
     <Container sx={{ mt: 5 }} maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 2 }}>
-        Add Feature Product
+        Add Beverages
       </Typography>
       <Grid
         container
@@ -170,7 +153,7 @@ function AddBeverages() {
                   onChange={(e) => setCategoryId(e.target.value)}
                 >
                   {categories &&
-                    categories.map((e, i) => (
+                    categories?.map((e, i) => (
                       <MenuItem value={e.uniqueId} key={i}>
                         {e.name}
                       </MenuItem>
@@ -179,9 +162,7 @@ function AddBeverages() {
               </FormControl>
             </Grid>
             <Grid container sx={{ marginTop: 2 }}>
-              <label style={{ marginBottom: "10px" }}>
-                Feature Product Name
-              </label>
+              <label style={{ marginBottom: "10px" }}>Product Name</label>
               <TextField
                 required
                 id="outlined-basic"
@@ -194,12 +175,12 @@ function AddBeverages() {
             </Grid>
             <Grid container sx={{ marginTop: 2 }}>
               <label style={{ marginBottom: "10px" }}>
-                Feature Product Description
+                Beverages Description
               </label>
               <TextField
                 required
                 id="outlined-basic"
-                placeholder="Product Description"
+                placeholder="Beverages Description"
                 variant="outlined"
                 fullWidth
                 onChange={(e) => setDescription(e.target.value)}
@@ -207,13 +188,11 @@ function AddBeverages() {
               />
             </Grid>
             <Grid container sx={{ marginTop: 2 }}>
-              <label style={{ marginBottom: "10px" }}>
-                Feature Product Sku
-              </label>
+              <label style={{ marginBottom: "10px" }}>Beverages Sku</label>
               <TextField
                 required
                 id="outlined-basic"
-                placeholder="Product Sku"
+                placeholder="Beverages Sku"
                 variant="outlined"
                 fullWidth
                 type="number"
@@ -226,13 +205,11 @@ function AddBeverages() {
               />
             </Grid>
             <Grid container sx={{ marginTop: 2 }}>
-              <label style={{ marginBottom: "10px" }}>
-                Feature Product Price
-              </label>
+              <label style={{ marginBottom: "10px" }}>Beverages Price</label>
               <TextField
                 required
                 id="outlined-basic"
-                placeholder="Product Price"
+                placeholder="Beverages Price"
                 variant="outlined"
                 fullWidth
                 type="number"
@@ -251,9 +228,7 @@ function AddBeverages() {
               }}
             >
               <Box>
-                <label style={{ marginBottom: "10px" }}>
-                  Feature Product Stock
-                </label>
+                <label style={{ marginBottom: "10px" }}>Beverages Stock</label>
                 <FormGroup>
                   <RadioGroup
                     aria-labelledby="demo-radio-buttons-group-label"
@@ -303,20 +278,18 @@ function AddBeverages() {
                 onClick={addProduct}
                 fullWidth
               >
-                Add Feature Product
+                {loading ? <CircularProgress size={24} /> : "Add Beverages"}
               </Button>
             </Grid>
           </Box>
         </Grid>
         <Grid item xs={4}>
           <Box
-            // component="form"
-            // component={Paper}
             rowrpacing={1}
             columnspacing={{ xs: 1, sm: 2, md: 3 }}
             className="main-order-table glass-morphism"
           >
-            <Typography variant="h6">Feature Product Images</Typography>
+            <Typography variant="h6">Beverages Images</Typography>
             <div
               style={{
                 display: "flex",
@@ -343,9 +316,7 @@ function AddBeverages() {
             <Grid container sx={{ marginTop: 2 }}>
               <label for="upload-photo" className="image-upload-customize">
                 <img src={Gallery} alt="" width={80} height={80} />
-                <Typography variant="h6">
-                  Upload Feature Product Image
-                </Typography>
+                <Typography variant="h6">Upload Beverages Image</Typography>
               </label>
               <input
                 id="upload-photo"

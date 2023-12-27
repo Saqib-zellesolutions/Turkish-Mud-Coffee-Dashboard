@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { BranchFunction, LocalUrl } from "../../config/env";
+import { BranchFunction, ImageUrl, LocalUrl } from "../../config/env";
 import SliderUpdateModal from "../sliderUpdateModal";
 import "./style.css";
 function Slider() {
@@ -75,105 +75,35 @@ function Slider() {
   };
   const theme = useTheme();
   const handleImageChange = (e) => {
-    // setIsLoading(true);
-    const file = e.target.files[0];
-    setImageData(URL.createObjectURL(file));
-    // setFile(file)
-    ImageUploader(file);
+    const selectedFile = e.target.files[0];
+    setImageUrl(selectedFile);
+    setImageData(URL.createObjectURL(selectedFile));
   };
-  const ImageUploader = async (e) => {
-    toast.success("wait for the upload image");
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    // setLoading(true);
-    // Make an API call to Cloudinary using fetch or axios
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.url) {
-          setImageUrl(data?.url);
-          // setLoading(false);
-          toast.success("Image uploaded successfully");
-          // return data.url;
-        } else {
-          // setLoading(false);
-          toast.error("image is not uploaded");
-        }
-      })
-      .catch((error) => {
-        // Handle error
-        setLoading(false);
-        // setIsLoading(false);
-        toast.error("Upload error");
-      });
-  };
-  // const handleEditSubmit = () => {
-  //   var myHeaders = new Headers();
-  //   myHeaders.append("Content-Type", "application/json");
 
-  //   var raw = JSON.stringify({
-  //     title: title,
-  //     image: imageUrl,
-  //     description: description,
-  //   });
-
-  //   var requestOptions = {
-  //     method: "PUT",
-  //     headers: myHeaders,
-  //     body: raw,
-  //     redirect: "follow",
-  //   };
-
-  //   fetch(
-  //     `${
-  //       branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-  //     }/slider/edit-slider/${editData}`,
-  //     requestOptions
-  //   )
-  //     .then((response) => response.json())
-  //     .then((result) => {
-  //       console.log(result);
-  //       window.location.reload();
-  //       setTitle("");
-  //       setDescription("");
-  //       setImageData([]);
-  //     })
-  //     .catch((error) => console.log("error", error));
-  // };
   const handleEditSubmit = () => {
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
-
-    var raw = JSON.stringify({
-      title: title,
-      image: imageUrl,
-      description: description,
-    });
-
+    console.log(imageUrl);
+    const formData = new FormData();
+    formData.append("title", title);
+    // formData.append("image", imageUrl);
+    formData.append("description", description);
+    if (imageUrl) {
+      formData.append("image", imageUrl);
+    }
     var requestOptions = {
       method: "PUT",
-      headers: myHeaders,
-      body: raw,
-      redirect: "follow",
+      body: formData,
     };
 
     fetch(
       `${LocalUrl}/Slider/${BranchFunction(
         branch
       )}/Update-Slider/${editData}/${branch}`,
-      // `${
-      //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-      // }/slider/edit-slider/${editData}`,
       requestOptions
     )
       .then((response) => response.json())
       .then((result) => {
-        // Update the state with the edited data
-        if (result.product) {
+        if (result.updatedSlider) {
+          window.location.reload();
           setSliderData((prevData) =>
             prevData.map((item) =>
               item._id === editData ? { ...item, ...result.product } : item
@@ -265,7 +195,7 @@ function Slider() {
                                   className="product-table-text"
                                 >
                                   <img
-                                    src={e.image}
+                                    src={`${ImageUrl}/${e.image}`}
                                     alt=""
                                     width={50}
                                     height={50}

@@ -9,125 +9,84 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
+import { BranchFunction, LocalUrl } from "../../config/env";
 import { Upload } from "../../config/icon";
 import { useLocation, useNavigate } from "react-router-dom";
+
 function EditCategory() {
   const location = useLocation();
   const [name, setName] = useState(location?.state?.name);
   const [imageData, setImageData] = useState(location?.state?.image);
-  const [fileurl, setFileurl] = useState(location?.state?.image);
-  const [loader, setLoading] = useState(false);
+  const [file, setFile] = useState(null);
   const [banner, setBanner] = useState(location?.state?.banner_image);
-  const [bannerFileUrl, setBannerFileUrl] = useState(
-    location?.state?.banner_image
-  );
+  const [bannerFile, setBannerFile] = useState(null);
+  const [loader, setLoading] = useState(false);
   const branch = localStorage.getItem("branchName");
   const navigate = useNavigate();
-  const handleEditSubmit = () => {
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
 
-    var raw = JSON.stringify({
-      name: name,
-      image: fileurl,
-      banner_image: bannerFileUrl,
-    });
+  const handleEditSubmit = async () => {
+    setLoading(true);
 
-    var requestOptions = {
-      method: "PUT",
-      headers: myHeaders,
-      body: raw,
-      redirect: "follow",
-    };
+    const formData = new FormData();
+    formData.append("name", name);
 
-    fetch(
-      `${LocalUrl}/Category/${BranchFunction(branch)}/Update-Category/${
-        location.state._id
-      }/${branch}`,
-      requestOptions
-    )
-      .then((response) => response.json())
-      .then((result) => {
-        navigate("/dashboard/category");
+    // Append image file if it exists
+    if (file) {
+      formData.append("image", file);
+    }
+
+    // Append banner image file if it exists
+    if (bannerFile) {
+      formData.append("banner_image", bannerFile);
+    }
+
+    try {
+      const response = await fetch(
+        `${LocalUrl}/Category/${BranchFunction(branch)}/Update-Category/${
+          location.state._id
+        }/${branch}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
         console.log(result);
+        navigate("/dashboard/category");
         setName("");
         setImageData("");
-        setFileurl("");
+        setFile(null);
         setBanner("");
-        setBannerFileUrl("");
-        // handleClose();
-      })
-      .catch((error) => {
-        console.log("error", error);
-        toast.error(error);
-      });
+        setBannerFile(null);
+      } else {
+        throw new Error("Failed to update category");
+      }
+    } catch (error) {
+      console.error("Error updating category:", error);
+      toast.error("Error updating category");
+    } finally {
+      setLoading(false);
+    }
   };
-  const ImageUploader = async (e) => {
-    toast.success("wait for the upload image");
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        if (data.url) {
-          setFileurl(data?.url);
-          toast.success("Image uploaded successfully");
-          // return data.url;
-        } else {
-          toast.error("image is not uploaded");
-        }
-      })
-      .catch((error) => {
-        toast.error("Upload error");
-      });
-  };
+
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImageData(URL.createObjectURL(file));
-    ImageUploader(file);
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setImageData(URL.createObjectURL(selectedFile));
   };
-  const BannerImageUploader = async (e) => {
-    toast.success("wait for the upload image");
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        // Handle the response from Cloudinary
-        if (data.url) {
-          setBannerFileUrl(data?.url);
-          toast.success(" uploaded Banner Image successfully");
-          // return data.url;
-        } else {
-          toast.error("Banner Image is not uploaded");
-        }
-      })
-      .catch((error) => {
-        // setIsLoading(false);
-        toast.error("Upload error");
-      });
-  };
+
   const handleBannerImageChange = (e) => {
-    // setIsLoading(true);
-    const file = e.target.files[0];
-    setBanner(URL.createObjectURL(file));
-    // setFile(file)
-    BannerImageUploader(file);
+    const selectedFile = e.target.files[0];
+    setBannerFile(selectedFile);
+    setBanner(URL.createObjectURL(selectedFile));
   };
+
   return (
     <Container sx={{ mt: 5 }} maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 2 }}>
-        Add Feature Product
+        Edit Category
       </Typography>
       <Grid
         container
@@ -162,8 +121,7 @@ function EditCategory() {
                 <TextField
                   required
                   id="outlined-basic"
-                  // label="Product name"
-                  placeholder="Product name"
+                  placeholder="Category name"
                   variant="outlined"
                   fullWidth
                   onChange={(e) => setName(e.target.value)}
@@ -176,7 +134,7 @@ function EditCategory() {
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
                   <label
-                    for="upload-image"
+                    htmlFor="upload-image"
                     style={{
                       border: "1px solid rgb(89 91 103)",
                       width: "100%",
@@ -202,15 +160,13 @@ function EditCategory() {
                     onChange={handleImageChange}
                   />
                 </Box>
-                {fileurl ? (
+                {file ? (
                   <img
-                    // key={index}s
-                    src={fileurl.url ? fileurl.url : fileurl}
+                    src={URL.createObjectURL(file)}
                     alt=""
                     style={{
                       width: "130px",
                       height: "80px",
-                      //   marginRight: "10px",
                       borderRadius: "10px",
                       marginTop: 5,
                     }}
@@ -230,7 +186,7 @@ function EditCategory() {
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
                   <label
-                    for="banner-image"
+                    htmlFor="banner-image"
                     style={{
                       border: "1px solid rgb(89 91 103)",
                       width: "100%",
@@ -256,15 +212,13 @@ function EditCategory() {
                     onChange={handleBannerImageChange}
                   />
                 </Box>
-                {bannerFileUrl ? (
+                {bannerFile ? (
                   <img
-                    // key={index}s
-                    src={bannerFileUrl.url ? bannerFileUrl.url : bannerFileUrl}
+                    src={URL.createObjectURL(bannerFile)}
                     alt=""
                     style={{
                       width: "130px",
                       height: "80px",
-                      //   marginRight: "10px",
                       borderRadius: "10px",
                       marginTop: 5,
                     }}
@@ -295,4 +249,5 @@ function EditCategory() {
     </Container>
   );
 }
+
 export default EditCategory;

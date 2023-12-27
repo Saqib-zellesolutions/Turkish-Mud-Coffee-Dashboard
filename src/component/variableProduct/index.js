@@ -22,7 +22,7 @@ import { useTheme } from "@mui/material/styles";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BranchFunction, LocalUrl } from "../../config/env";
+import { BranchFunction, ImageUrl, LocalUrl } from "../../config/env";
 import VariationItemModal from "../variation-item-modal";
 
 function VariableProduct() {
@@ -196,7 +196,7 @@ function VariableProduct() {
                             <TableCell align="left">{e.description}</TableCell>
                             <TableCell align="left">
                               <img
-                                src={e.image}
+                                src={`${ImageUrl}/${e.image}`}
                                 width={50}
                                 height={50}
                                 style={{ borderRadius: "8px" }}

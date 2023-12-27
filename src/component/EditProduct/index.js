@@ -13,7 +13,12 @@ import {
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
+import {
+  BranchFunction,
+  CliftonLocalUrl,
+  ImageUrl,
+  LocalUrl,
+} from "../../config/env";
 import { Gallery } from "../../config/icon";
 function EditProduct() {
   const location = useLocation();
@@ -26,79 +31,57 @@ function EditProduct() {
   const [selectedGalleryImages, setSelectedGalleryImages] = useState(
     location?.state?.images
   );
-  const [cloudImage, setCloudImage] = useState(location?.state?.images);
   const priceVariable = Number(price);
   const skuVariable = Number(sku);
   const branch = localStorage.getItem("branchName");
   const navigate = useNavigate();
   const handleGalleryImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const gFiles = e.target.files[0];
-    setImageData((gallery) => [...gallery, gFiles]);
     const images = files.map((file) => ({
       file,
       url: URL.createObjectURL(file),
     }));
-    setSelectedGalleryImages((prevImages) => [...prevImages, ...images]);
+    setSelectedGalleryImages([...selectedGalleryImages, ...images]);
   };
-  const uploadImages = async (e) => {
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setCloudImage((prevArray) => [...prevArray, data.url]);
-      })
-      .catch((error) => {
-        toast.error("image is not uploaded");
-      });
+
+  const removeGalleryImage = (index) => {
+    const updatedImages = [...selectedGalleryImages];
+    updatedImages.splice(index, 1);
+    setSelectedGalleryImages(updatedImages);
   };
   const SaveImages = () => {
-    let newUrl = [];
-    for (let i of imageData) {
-      newUrl.push(uploadImages(i));
-      toast.success("gallery images uploaded successfully!");
-    }
-
-    if (newUrl.length > 1) {
-      toast.success("gallery images uploaded successfully!");
-    }
+    toast.success("Gallery images saved successfully!");
   };
   const addProduct = async () => {
     if (
-      (!name, !description, !skuVariable, !priceVariable, !cloudImage.length)
+      (!name,
+      !description,
+      !skuVariable,
+      !priceVariable,
+      !selectedGalleryImages.length)
     ) {
       toast.error("Please Fill Inputs");
     } else {
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      var raw = JSON.stringify({
-        name: name,
-        description: description,
-        sku: skuVariable,
-        images: cloudImage,
-        price: priceVariable,
-        instock: stock,
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("sku", sku);
+      formData.append("price", price);
+      formData.append("instock", stock);
+
+      selectedGalleryImages.forEach((image, index) => {
+        formData.append("images", image.file);
       });
 
       var requestOptions = {
         method: "PUT",
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow",
+        body: formData,
       };
 
       fetch(
         `${LocalUrl}/SimpleProduct/${BranchFunction(
           branch
         )}/Update-SimpleProduct/${location.state._id}/${branch}`,
-        // `${
-        //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-        // }/SimpleProduct/edit-product/${location.state._id}`,
         requestOptions
       )
         .then((response) => response.json())
@@ -260,8 +243,6 @@ function EditProduct() {
         </Grid>
         <Grid item xs={4}>
           <Box
-            // component="form"
-            // component={Paper}
             rowrpacing={1}
             columnspacing={{ xs: 1, sm: 2, md: 3 }}
             className="main-order-table glass-morphism"
@@ -277,18 +258,21 @@ function EditProduct() {
             >
               {selectedGalleryImages &&
                 selectedGalleryImages.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image.url ? image.url : image}
-                    alt={`Selected ${index + 1}`}
-                    style={{
-                      width: "170px",
-                      height: "120px",
-                      //   marginRight: "10px",
-                      borderRadius: "10px",
-                      marginTop: 5,
-                    }}
-                  />
+                  <div key={index}>
+                    <img
+                      src={image.url ? image.url : `${ImageUrl}/${image}`}
+                      alt={`Selected ${index + 1}`}
+                      style={{
+                        width: "170px",
+                        height: "120px",
+                        borderRadius: "10px",
+                        marginTop: 5,
+                      }}
+                    />
+                    <Button onClick={() => removeGalleryImage(index)}>
+                      Remove
+                    </Button>
+                  </div>
                 ))}
             </div>
             <Grid container sx={{ marginTop: 2 }}>

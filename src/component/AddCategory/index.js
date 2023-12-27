@@ -9,116 +9,70 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
+import { BranchFunction, LocalUrl } from "../../config/env";
 import { Upload } from "../../config/icon";
+
 function AddCategory() {
   const [name, setName] = useState("");
   const [imageData, setImageData] = useState("");
-  const [fileurl, setFileurl] = useState("");
+  const [file, setFile] = useState(null);
   const [loader, setLoading] = useState(false);
   const [banner, setBanner] = useState("");
-  const [bannerFileUrl, setBannerFileUrl] = useState("");
-  const [open, setOpen] = useState(false);
+  const [bannerFile, setBannerFile] = useState(null);
   const branch = localStorage.getItem("branchName");
-  const addCategory = () => {
-    if (!name || !fileurl || !bannerFileUrl) {
-      toast.error("Please fill the input");
-    } else {
-      setLoading(true);
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
-      var raw = JSON.stringify({
-        name: name,
-        image: fileurl,
-        banner_image: bannerFileUrl,
-      });
-      var requestOptions = {
-        method: "POST",
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow",
-      };
-      fetch(
+
+  const addCategory = async () => {
+    if (!name || !file || !bannerFile) {
+      toast.error("Please fill all the input fields");
+      return;
+    }
+
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("image", file);
+    formData.append("banner_image", bannerFile);
+
+    try {
+      const response = await fetch(
         `${LocalUrl}/Category/${BranchFunction(branch)}/Add-Category/${branch}`,
-        // `${
-        //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-        // }/category/add-category`,
-        requestOptions
-      )
-        .then((response) => response.json())
-        .then((result) => {
-          setLoading(false);
-          console.log(result);
-          setName("");
-          setImageData("");
-        })
-        .catch((error) => {
-          toast.error(error.message);
-          setLoading(false);
-        });
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        setLoading(false);
+        console.log(result);
+        setName("");
+        setImageData("");
+        setBanner("");
+        setBannerFile("");
+        setFile("");
+      } else {
+        throw new Error("Failed to add category");
+      }
+    } catch (error) {
+      toast.error(error.message);
+      setLoading(false);
     }
   };
-  const ImageUploader = async (e) => {
-    toast.success("wait for the upload image");
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        if (data.url) {
-          setFileurl(data?.url);
-          toast.success("Image uploaded successfully");
-          // return data.url;
-        } else {
-          toast.error("image is not uploaded");
-        }
-      })
-      .catch((error) => {
-        toast.error("Upload error");
-      });
-  };
+
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImageData(URL.createObjectURL(file));
-    ImageUploader(file);
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setImageData(URL.createObjectURL(selectedFile));
   };
-  const BannerImageUploader = async (e) => {
-    toast.success("wait for the upload image");
-    const formData = new FormData();
-    formData.append("file", e);
-    formData.append("upload_preset", "htjxlrii");
-    fetch("https://api.cloudinary.com/v1_1/dnwbw493d/image/upload", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        // Handle the response from Cloudinary
-        if (data.url) {
-          setBannerFileUrl(data?.url);
-          toast.success(" uploaded Banner Image successfully");
-          // return data.url;
-        } else {
-          toast.error("Banner Image is not uploaded");
-        }
-      })
-      .catch((error) => {
-        // setIsLoading(false);
-        toast.error("Upload error");
-      });
-  };
+
   const handleBannerImageChange = (e) => {
-    // setIsLoading(true);
-    const file = e.target.files[0];
-    setBanner(URL.createObjectURL(file));
-    // setFile(file)
-    BannerImageUploader(file);
+    const selectedFile = e.target.files[0];
+    setBannerFile(selectedFile);
+    setBanner(URL.createObjectURL(selectedFile));
   };
+
   return (
     <Container sx={{ mt: 5 }} maxWidth="lg">
       <Typography variant="h4" sx={{ mb: 2 }}>
@@ -157,7 +111,6 @@ function AddCategory() {
                 <TextField
                   required
                   id="outlined-basic"
-                  // label="Product name"
                   placeholder="Product name"
                   variant="outlined"
                   fullWidth
@@ -171,7 +124,7 @@ function AddCategory() {
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
                   <label
-                    for="upload-image"
+                    htmlFor="upload-image"
                     style={{
                       border: "1px solid rgb(89 91 103)",
                       width: "100%",
@@ -197,15 +150,13 @@ function AddCategory() {
                     onChange={handleImageChange}
                   />
                 </Box>
-                {fileurl ? (
+                {file ? (
                   <img
-                    // key={index}s
-                    src={fileurl.url ? fileurl.url : fileurl}
+                    src={URL.createObjectURL(file)}
                     alt=""
                     style={{
                       width: "130px",
                       height: "80px",
-                      //   marginRight: "10px",
                       borderRadius: "10px",
                       marginTop: 5,
                     }}
@@ -225,7 +176,7 @@ function AddCategory() {
                 </Typography>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
                   <label
-                    for="banner-image"
+                    htmlFor="banner-image"
                     style={{
                       border: "1px solid rgb(89 91 103)",
                       width: "100%",
@@ -251,15 +202,13 @@ function AddCategory() {
                     onChange={handleBannerImageChange}
                   />
                 </Box>
-                {bannerFileUrl ? (
+                {bannerFile ? (
                   <img
-                    // key={index}s
-                    src={bannerFileUrl.url ? bannerFileUrl.url : bannerFileUrl}
+                    src={URL.createObjectURL(bannerFile)}
                     alt=""
                     style={{
                       width: "130px",
                       height: "80px",
-                      //   marginRight: "10px",
                       borderRadius: "10px",
                       marginTop: 5,
                     }}
@@ -290,4 +239,5 @@ function AddCategory() {
     </Container>
   );
 }
+
 export default AddCategory;

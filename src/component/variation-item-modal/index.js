@@ -16,6 +16,7 @@ import {
   useTheme,
 } from "@mui/material";
 import React from "react";
+import { ImageUrl } from "../../config/env";
 
 export default function Variation({ data, open, handleClose }) {
   const style = {
@@ -135,7 +136,7 @@ export default function Variation({ data, open, handleClose }) {
                                   e?.images?.map((image, i) => (
                                     <img
                                       key={i}
-                                      src={image}
+                                      src={`${ImageUrl}/${image}`}
                                       width={50}
                                       height={50}
                                       style={{

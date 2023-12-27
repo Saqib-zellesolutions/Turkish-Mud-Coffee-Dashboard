@@ -25,17 +25,6 @@ function OrderDetail() {
       method: "GET",
       redirect: "follow",
     };
-    // let branchNumber =
-    //   branch === "branch1"
-    //     ? 1
-    //     : branch === "branch2"
-    //     ? 2
-    //     : branch === "branch3"
-    //     ? 3
-    //     : branch === "branch4"
-    //     ? 4
-    //     : null;
-    // BranchFunction(branch)
     fetch(
       `${LocalUrl}/Order/${BranchFunction(branch)}/Get-Order/${branch}`,
       requestOptions
