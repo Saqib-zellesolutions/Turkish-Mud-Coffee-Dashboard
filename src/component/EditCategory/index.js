@@ -3,7 +3,11 @@ import {
   Button,
   CircularProgress,
   Container,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -16,6 +20,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 function EditCategory() {
   const location = useLocation();
   const [name, setName] = useState(location?.state?.name);
+  const [forCategory, setForCategory] = useState(location?.state?.for);
   const [imageData, setImageData] = useState(location?.state?.image);
   const [file, setFile] = useState(null);
   const [banner, setBanner] = useState(location?.state?.banner_image);
@@ -29,6 +34,7 @@ function EditCategory() {
 
     const formData = new FormData();
     formData.append("name", name);
+    formData.append("For", forCategory);
 
     // Append image file if it exists
     if (file) {
@@ -112,6 +118,29 @@ function EditCategory() {
               }}
             >
               <Typography variant="h4">Category</Typography>
+            </Grid>
+            <Grid container>
+              <label style={{ marginBottom: "10px" }}>Select For</label>
+              <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">
+                  Select For
+                </InputLabel>
+                <Select
+                  required
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={forCategory}
+                  label="Category"
+                  onChange={(e) => setForCategory(e.target.value)}
+                >
+                  {
+                   ["Deals","Products","Both"]?.map((e, i) => (
+                      <MenuItem value={e} key={i}>
+                        {e}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid container spacing={2} style={{ marginTop: 10 }}>
               <Grid xs={6} item>

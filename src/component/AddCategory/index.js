@@ -3,7 +3,11 @@ import {
   Button,
   CircularProgress,
   Container,
+  FormControl,
   Grid,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -14,6 +18,7 @@ import { Upload } from "../../config/icon";
 
 function AddCategory() {
   const [name, setName] = useState("");
+  const [forCategory, setForCategory] = useState("");
   const [imageData, setImageData] = useState("");
   const [file, setFile] = useState(null);
   const [loader, setLoading] = useState(false);
@@ -31,6 +36,7 @@ function AddCategory() {
 
     const formData = new FormData();
     formData.append("name", name);
+    formData.append("For", forCategory);
     formData.append("image", file);
     formData.append("banner_image", bannerFile);
 
@@ -102,6 +108,29 @@ function AddCategory() {
               }}
             >
               <Typography variant="h4">Category</Typography>
+            </Grid>
+            <Grid container>
+              <label style={{ marginBottom: "10px" }}>Select For</label>
+              <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">
+                  Select For
+                </InputLabel>
+                <Select
+                  required
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={forCategory}
+                  label="Category"
+                  onChange={(e) => setForCategory(e.target.value)}
+                >
+                  {
+                   ["Deals","Products","Both"]?.map((e, i) => (
+                      <MenuItem value={e} key={i}>
+                        {e}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid container spacing={2} style={{ marginTop: 10 }}>
               <Grid xs={6} item>

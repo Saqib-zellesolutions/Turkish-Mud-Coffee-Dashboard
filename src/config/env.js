@@ -2,7 +2,6 @@
 // export const ImageUrl = "http://localhost:4000";
 export const LocalUrl = "https://testing2.zameeransari.com.pk/api/v1";
 export const ImageUrl = "https://testing2.zameeransari.com.pk";
-// export const ImageUrl = "https://turkish-mud-coffee.vercel.app";
 export const BranchFunction = (branch) => {
   return branch === "branch1"
     ? 1
