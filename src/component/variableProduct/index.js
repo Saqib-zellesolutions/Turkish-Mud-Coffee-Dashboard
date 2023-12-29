@@ -82,6 +82,7 @@ function VariableProduct() {
     )
       .then((response) => response.json())
       .then((result) => {
+        console.log(result,"jhg");
         setAllProduct(result);
       })
       .catch((error) => console.log("error", error));
@@ -190,7 +191,7 @@ function VariableProduct() {
                     </TableHead>
                     <TableBody>
                       {allProduct &&
-                        allProduct.map((e, index) => (
+                        allProduct?.map((e, index) => (
                           <TableRow key={index}>
                             <TableCell align="left">{e.name}</TableCell>
                             <TableCell align="left">{e.description}</TableCell>

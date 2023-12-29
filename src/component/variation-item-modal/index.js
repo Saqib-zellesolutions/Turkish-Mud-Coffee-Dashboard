@@ -101,7 +101,7 @@ export default function Variation({ data, open, handleClose }) {
                     </TableHead>
                     <TableBody sx={{ overflowY: "scroll" }}>
                       {data &&
-                        data.map((e, index) => (
+                        data?.map((e, index) => (
                           <TableRow key={e._id}>
                             <TableCell align="left">
                               <Typography
