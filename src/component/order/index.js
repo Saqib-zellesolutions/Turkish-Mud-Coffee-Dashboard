@@ -18,15 +18,15 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import "../../App.css";
-import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
+import { BranchFunction, ImageUrl, LocalUrl } from "../../config/env";
 import CustomerModal from "../customer-modal";
 import OrderItemModal from "../order-item-modal";
 import { SeverityPill } from "../severity-pill.js";
 import { io } from "socket.io-client";
 import NewOrderModal from "../newOrderModal/index.js";
-import ringtoneSound from "../../assets/ringtones.mp3";
+// import ringtoneSound from "../../assets/ringtones.mp3";
 function Order() {
-  const [ringtone] = useState(new Audio(ringtoneSound));
+  // const [ringtone] = useState(new Audio(ringtoneSound));
   const [order, setOrder] = useState([]);
   const [modalData, setModalData] = useState({});
   const [modalId, setModalId] = useState("");
@@ -36,6 +36,21 @@ function Order() {
   const [customerDetailModal, setCustomerDetailModal] = useState(false);
   const [newOrderModal, setNewOrderModal] = useState(false);
   const [customerDetailData, setCustomerDetailData] = useState({});
+  const SocketUrl = ImageUrl
+  // const SocketUrl = "http://localhost:4000"
+  const socket = io(SocketUrl);
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("socket connect ", socket.id);
+    });
+  }, []);
+  socket.on("newOrder", (newProduct) => {
+    console.log(newProduct, "new order");
+    setOrder((prevOrder) => [newProduct, ...prevOrder]);
+    setModalData(newProduct);
+    setNewOrderModal(true);
+    setModalId(newProduct._id);
+  });
   useEffect(() => {
     var requestOptions = {
       method: "GET",

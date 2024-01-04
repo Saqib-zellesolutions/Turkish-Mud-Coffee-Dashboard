@@ -327,7 +327,7 @@ function Product() {
                 onChange={handleGalleryImageChange}
               />
             </Grid>
-            <Box
+            {/* <Box
               sx={{
                 mt: 2,
                 display: "flex",
@@ -347,7 +347,7 @@ function Product() {
                   Save Images
                 </Button>
               ) : null}
-            </Box>
+            </Box> */}
           </Box>
         </Grid>
       </Grid>

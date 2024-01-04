@@ -41,16 +41,6 @@ function VariableProduct() {
   };
   let edit = (e) => {
     navigate("/dashboard/edit-variableProduct", { state: e });
-    // setUpdateModal(true);
-    // setCategoryId(e.parent_id);
-    // setName(e.name);
-    // setDescription(e.description);
-    // setSku(e.sku);
-    // setEditData(e);
-    // setMultipleVariation(e.variation);
-    // setVariationId(e._id);
-    // setVariation(true);
-    // setCategoryId(e.parent_id);
   };
   useEffect(() => {
     var requestOptions = {
