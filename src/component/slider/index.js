@@ -18,7 +18,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { BranchFunction, ImageUrl, LocalUrl } from "../../config/env";
 import SliderUpdateModal from "../sliderUpdateModal";
 import "./style.css";

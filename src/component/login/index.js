@@ -16,7 +16,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { LocalUrl } from "../../config/env";
 import "./style.css";
 
@@ -56,12 +56,12 @@ export default function Login() {
         email === "branch1"
           ? 1
           : email === "branch2"
-          ? 2
-          : email === "branch3"
-          ? 3
-          : email === "branch4"
-          ? 4
-          : null;
+            ? 2
+            : email === "branch3"
+              ? 3
+              : email === "branch4"
+                ? 4
+                : null;
       var requestOptions = {
         method: "POST",
         headers: myHeaders,
@@ -82,9 +82,11 @@ export default function Login() {
             //   localStorage.setItem("token", result.data.token);
             //   // navigate("/dashboard");
             // } else if (result.data.email === "admin.bhd@gmail.com") {
+            toast.success("Login Successfully")
             localStorage.setItem("branchName", result.data.branch);
             localStorage.setItem("token", result.data.token);
             navigate("/dashboard");
+
             // }
           } else {
             toast.error(result.message);

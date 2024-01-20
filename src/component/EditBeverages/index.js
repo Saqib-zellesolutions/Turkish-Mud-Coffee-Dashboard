@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import {
   BranchFunction,
   CliftonLocalUrl,
@@ -32,7 +32,7 @@ function EditBeverages() {
     location?.state?.images
   );
   const priceVariable = Number(price);
-  const skuVariable = Number(sku);
+  const skuVariable = sku;
   const branch = localStorage.getItem("branchName");
   const navigate = useNavigate();
   const handleGalleryImageChange = (e) => {
@@ -55,10 +55,10 @@ function EditBeverages() {
   const addProduct = async () => {
     if (
       (!name,
-      !description,
-      !skuVariable,
-      !priceVariable,
-      !selectedGalleryImages.length)
+        !description,
+        !skuVariable,
+        !priceVariable,
+        !selectedGalleryImages.length)
     ) {
       toast.error("Please Fill Inputs");
     } else {
@@ -79,14 +79,18 @@ function EditBeverages() {
       };
 
       fetch(
-        `${LocalUrl}/Beverages/${BranchFunction(branch)}/Update-Beverages/${
-          location.state._id
+        `${LocalUrl}/Beverages/${BranchFunction(branch)}/Update-Beverages/${location.state._id
         }/${branch}`,
         requestOptions
       )
         .then((response) => response.json())
         .then((result) => {
-          toast.success("Successfully edit product");
+          if (result.product) {
+
+            toast.success("Successfully edit product");
+          } else {
+            toast.error(result.message)
+          }
           // window.location.reload();
           setName("");
           setDescription("");
@@ -133,7 +137,7 @@ function EditBeverages() {
             </Grid>
             <Grid container sx={{ marginTop: 2 }}>
               <label style={{ marginBottom: "10px" }}>
-              Beverages Description
+                Beverages Description
               </label>
               <TextField
                 required
@@ -153,11 +157,11 @@ function EditBeverages() {
                 placeholder="Beverages Sku"
                 variant="outlined"
                 fullWidth
-                type="number"
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                // type="number"
+                // inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                 onChange={(e) => {
-                  const numericValue = e.target.value.replace(/[^0-9]/g, "");
-                  setSku(numericValue);
+                  // const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                  setSku(e.target.value);
                 }}
                 value={sku}
               />
@@ -288,7 +292,7 @@ function EditBeverages() {
                 onChange={handleGalleryImageChange}
               />
             </Grid>
-            <Box
+            {/* <Box
               sx={{
                 mt: 2,
                 display: "flex",
@@ -308,7 +312,7 @@ function EditBeverages() {
                   Save New Images
                 </Button>
               ) : null}
-            </Box>
+            </Box> */}
           </Box>
         </Grid>
       </Grid>

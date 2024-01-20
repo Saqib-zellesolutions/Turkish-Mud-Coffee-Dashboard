@@ -14,7 +14,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { CliftonLocalUrl, LocalUrl } from "../../config/env";
 
 function Tax() {

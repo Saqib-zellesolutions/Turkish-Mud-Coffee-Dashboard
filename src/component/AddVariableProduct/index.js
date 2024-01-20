@@ -22,8 +22,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import { BranchFunction, LocalUrl } from "../../config/env";
+import { toast } from "react-hot-toast";
+import { BranchFunction, ImageUrl, LocalUrl } from "../../config/env";
+import { useNavigate } from "react-router-dom";
 
 function VariableProduct() {
   const [categories, setCategories] = useState();
@@ -47,6 +48,8 @@ function VariableProduct() {
   const [multipleVariation, setMultipleVariation] = useState([]);
   const branch = localStorage.getItem("branchName");
   const [loading, setLoading] = useState(false);
+  const [categoryLoading, setCategoryLoading] = useState(false)
+  const navigate = useNavigate()
   let saveVariation = () => {
     if (
       !variationName ||
@@ -81,6 +84,7 @@ function VariableProduct() {
   };
 
   useEffect(() => {
+    setCategoryLoading(true)
     var requestOptions = {
       method: "GET",
       redirect: "follow",
@@ -92,12 +96,14 @@ function VariableProduct() {
     )
       .then((response) => response.json())
       .then((result) => {
+        setCategoryLoading(false)
         setCategories(result.categories);
       })
-      .catch((error) => console.log("error", error));
+      .catch((error) => {
+        setCategoryLoading(false)
+        console.log("error", error)
+      });
   }, []);
-
-  console.log(multipleVariation);
   const addVariableProduct = async () => {
     setLoading(true);
     var formData = new FormData();
@@ -127,11 +133,22 @@ function VariableProduct() {
         const result = await response.json();
         console.log(result, "res");
         setLoading(false);
-        setName("");
-        setImageData("");
-        setDescription("");
-        setSku(0);
-        setMultipleVariation([]);
+        if (result.data) {
+          setName("");
+          setImageData("");
+          setDescription("");
+          setSku(0);
+          setMultipleVariation([]);
+          toast.success(result.message)
+          navigate("/dashboard/variable-product")
+        } else {
+          setName("");
+          setImageData("");
+          setDescription("");
+          setSku(0);
+          setMultipleVariation([]);
+          toast.error(result.message)
+        }
         // window.location.reload();
       } else {
         toast.error("Failed to add variable product");
@@ -210,12 +227,19 @@ function VariableProduct() {
                   label="Category"
                   onChange={(e) => setCategoryId(e.target.value)}
                 >
-                  {categories &&
-                    categories.map((e, i) => (
-                      <MenuItem value={e.uniqueId} key={i}>
-                        {e.name}
-                      </MenuItem>
-                    ))}
+                  {categoryLoading ?
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <CircularProgress size={20} />
+                    </Box>
+                    : !categories?.length ?
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Typography variant="body1" component="p">Category Not Available</Typography>
+                      </Box>
+                      : categories.map((e, i) => (
+                        <MenuItem value={e.uniqueId} key={i}>
+                          {e.name}
+                        </MenuItem>
+                      ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -292,41 +316,6 @@ function VariableProduct() {
                 ) : null}
               </Grid>
             </Grid>
-            {multipleVariation.length === 1 ? (
-              <TableContainer sx={{ mt: 2 }}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell align="left">Name</TableCell>
-                      <TableCell align="left">Description</TableCell>
-                      <TableCell align="left">Image</TableCell>
-                      <TableCell align="left">Sku</TableCell>
-                      <TableCell align="left">Price</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {multipleVariation.map((e) => (
-                      <TableRow key={e._id}>
-                        <TableCell align="left">{e.name}</TableCell>
-                        <TableCell align="left">{e.description}</TableCell>
-                        <TableCell align="left">
-                          <img
-                            src={e.images && e.images[0]}
-                            width={50}
-                            height={50}
-                            style={{ borderRadius: "10px" }}
-                          />
-                        </TableCell>
-                        <TableCell align="left">{e.sku}</TableCell>
-                        <TableCell align="left">{e.price}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <></>
-            )}
             {variation ? (
               <></>
             ) : (
@@ -440,11 +429,10 @@ function VariableProduct() {
                       fullWidth
                       type="file"
                       inputProps={{
-                        multiple: true,
                         accept: "image/*",
                       }}
                       onChange={handleGalleryImageChange}
-                      // multiple
+                    // multiple
                     />
                     {selectedGalleryImages &&
                       selectedGalleryImages.map((image, index) => (
@@ -462,20 +450,6 @@ function VariableProduct() {
                           />
                         </span>
                       ))}
-                    <div>
-                      {selectedGalleryImages && selectedGalleryImages.length ? (
-                        <Button
-                          variant="contained"
-                          value=""
-                          onClick={() =>
-                            SaveImages("multipleImage", variationImageData)
-                          }
-                          color="secondary"
-                        >
-                          Save Images
-                        </Button>
-                      ) : null}
-                    </div>
                   </Grid>
                   <Grid xs={6} item>
                     <FormGroup>
@@ -536,7 +510,6 @@ function VariableProduct() {
                     </Button>
                   </Grid>
                 </Grid>
-                {/* )} */}
               </>
             ) : (
               <></>

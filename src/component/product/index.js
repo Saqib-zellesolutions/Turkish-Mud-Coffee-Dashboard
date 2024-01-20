@@ -16,9 +16,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { BranchFunction, LocalUrl } from "../../config/env";
 import { Gallery } from "../../config/icon";
+import { useNavigate } from "react-router-dom";
 function Product() {
   const [categories, setCategories] = useState();
   const [categoryId, setCategoryId] = useState("");
@@ -31,10 +32,11 @@ function Product() {
   const [loading, setLoading] = useState(false);
   const priceVariable = Number(price);
   const skuVariable = Number(sku);
-
+  const navigate = useNavigate()
   const branch = localStorage.getItem("branchName");
-
+  const [categoryLoading, setCategoryLoading] = useState(false)
   useEffect(() => {
+    setCategoryLoading(true)
     const getCategory = () => {
       var requestOptions = {
         method: "GET",
@@ -47,10 +49,11 @@ function Product() {
       )
         .then((response) => response.json())
         .then((result) => {
-          console.log(result);
+          setCategoryLoading(false)
           setCategories(result.categories);
         })
         .catch((error) => {
+          setCategoryLoading(false)
           console.log("error", error);
         });
     };
@@ -109,6 +112,8 @@ function Product() {
             setPrice(0);
             setStock(true);
             setSelectedGalleryImages([]);
+            toast.success("SuccessFully Product Add")
+            navigate("/dashboard/simple-product")
           } else {
             toast.error(result.message);
           }
@@ -153,12 +158,19 @@ function Product() {
                   label="Category"
                   onChange={(e) => setCategoryId(e.target.value)}
                 >
-                  {categories &&
-                    categories?.map((e, i) => (
-                      <MenuItem value={e.uniqueId} key={i}>
-                        {e.name}
-                      </MenuItem>
-                    ))}
+                  {categoryLoading ?
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <CircularProgress size={20} />
+                    </Box>
+                    : !categories?.length ?
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Typography variant="body1" component="p">Category Not Available</Typography>
+                      </Box>
+                      : categories.map((e, i) => (
+                        <MenuItem value={e.uniqueId} key={i}>
+                          {e.name}
+                        </MenuItem>
+                      ))}
                 </Select>
               </FormControl>
             </Grid>

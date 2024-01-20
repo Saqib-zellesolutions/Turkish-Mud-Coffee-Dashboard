@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { BranchFunction, LocalUrl } from "../../config/env";
 import { Upload } from "../../config/icon";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -48,8 +48,7 @@ function EditCategory() {
 
     try {
       const response = await fetch(
-        `${LocalUrl}/Category/${BranchFunction(branch)}/Update-Category/${
-          location.state._id
+        `${LocalUrl}/Category/${BranchFunction(branch)}/Update-Category/${location.state._id
         }/${branch}`,
         {
           method: "PUT",
@@ -134,7 +133,7 @@ function EditCategory() {
                   onChange={(e) => setForCategory(e.target.value)}
                 >
                   {
-                   ["Deals","Products","Both"]?.map((e, i) => (
+                    ["Deals", "Products", "Both"]?.map((e, i) => (
                       <MenuItem value={e} key={i}>
                         {e}
                       </MenuItem>
@@ -186,6 +185,7 @@ function EditCategory() {
                     style={{ opacity: 0, position: "absolute", zIndex: -1 }}
                     fullWidth
                     type="file"
+                    required
                     onChange={handleImageChange}
                   />
                 </Box>
@@ -239,6 +239,7 @@ function EditCategory() {
                     fullWidth
                     type="file"
                     onChange={handleBannerImageChange}
+                    required  
                   />
                 </Box>
                 {bannerFile ? (

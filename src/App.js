@@ -1,40 +1,37 @@
-// import logo from './logo.svg';
-// import './App.css';
-
-import { ToastContainer } from "react-toastify";
+import { Dialog, DialogContent, DialogContentText } from "@mui/material";
+import { Toaster } from "react-hot-toast";
+import NoInternet from "./assets/no-internet.png";
+import { OnlineStatusProvider, useOnlineStatus } from "./config/NetworkContext";
+import AppRouter from "./config/route";
 import ThemeProviderWrapper from "./config/themeProvider";
-// import Signup from "./component/signup/index.js";
-import AppRouter from "./config/route"
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
 
-// export default App;
 function App() {
+  const onlineStatus = useOnlineStatus();
+
   return (
     <ThemeProviderWrapper>
-      {/* <Signup /> */}
-      <AppRouter/>
-      {/* <h1>hello</h1> */}
-      <ToastContainer />
+      <Toaster />
+      <OnlineStatusProvider>
+        <AppRouter />
+      </OnlineStatusProvider>
+      {/* {!onlineStatus && (
+        <Dialog
+          open={!onlineStatus}
+          fullWidth
+          maxWidth="xs"
+          PaperProps={{ style: { background: "transparent", backdropFilter: "blur(10px)" } }}
+        >
+          <DialogContent>
+            <DialogContentText sx={{ textAlign: "center", fontSize: 16, fontWeight: "600", color: "#fff" }}>
+              <img src={NoInternet} alt=" " width="20px" height="20px" />
+              Your Connection is Lost
+            </DialogContentText>
+          </DialogContent>
+        </Dialog>
+      )}
+      {onlineStatus && <AppRouter />} */}
     </ThemeProviderWrapper>
   );
 }
+
 export default App;

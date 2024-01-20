@@ -4,6 +4,11 @@ import {
   Card,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   Grid,
   TextField,
@@ -16,20 +21,33 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
+import { toast } from "react-hot-toast";
+import { BranchFunction, LocalUrl } from "../../config/env";
 function Shipping() {
   const [area, setArea] = useState("");
   const [allShipping, setAllShipping] = useState("");
   const [editingId, setEditingId] = useState("");
   const [delivery_charges, setDelivery_charges] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loader, setLoader] = useState(false)
+  const [currentRow, setCurrentRow] = useState("")
+  const [deleteModal, setDeleteModal] = useState(false)
   const branch = localStorage.getItem("branchName");
   const deliveryNumber = Number(delivery_charges);
+  const handleCloseDelete = () => {
+    setDeleteModal(false);
+    setCurrentRow("")
+    setLoader(false)
+  };
+  const handleOpenDelete = (id) => {
+    setDeleteModal(true)
+    setCurrentRow(id)
+  }
   const addShipping = () => {
     if ((!area, !delivery_charges)) {
       toast.error("Please fill the input");
     } else {
+      setLoader(true)
       var myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
       var raw = JSON.stringify({
@@ -51,14 +69,17 @@ function Shipping() {
           if (!result.addData) {
             toast.error(result.message);
           } else if (result.addData) {
+            toast.success(result.message);
             setArea("");
             setDelivery_charges("");
-            setAllShipping([...allShipping, result.shipping]);
+            setAllShipping([...allShipping, result.addData]);
             // window.location.reload();
           }
+          setLoader(false)
         })
         .catch((error) => {
           toast.error(error.message);
+          setLoader(false)
         });
     }
   };
@@ -84,6 +105,7 @@ function Shipping() {
       });
   }, []);
   const Delete = (id) => {
+    setLoader(true)
     var requestOptions = {
       method: "DELETE",
       redirect: "follow",
@@ -93,18 +115,24 @@ function Shipping() {
       `${LocalUrl}/Shipping/${BranchFunction(
         branch
       )}/Delete-Shipping/${id}/${branch}`,
-      // `${
-      //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-      // }/shipping/delete-shipping/${id}`,
       requestOptions
     )
-      .then((response) => response.text())
+      .then((response) => response.json())
       .then((result) => {
-        // window.location.reload();
-        setAllShipping(allShipping.filter((entry) => entry._id !== id));
-        toast.success("Successfully category delete");
+        if (result.Shipping) {
+
+          // window.location.reload();
+          setAllShipping(allShipping.filter((entry) => entry._id !== id));
+          toast.success("Successfully category delete");
+        } else {
+          toast.error(result.message)
+        }
+        handleCloseDelete()
       })
-      .catch((error) => console.log("error", error));
+      .catch((error) => {
+        handleCloseDelete()
+        console.log("error", error)
+      });
   };
   const edit = (data) => {
     setEditingId(data._id);
@@ -113,6 +141,7 @@ function Shipping() {
   };
 
   const handleEditSubmit = () => {
+    setLoader(true)
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
@@ -138,35 +167,34 @@ function Shipping() {
       .then((result) => {
         // window.location.reload();
         if (result.updatedShipping) {
-          // window.location.reload();
-          // setEditingId("");
-          // setArea("");
-          // setDelivery_charges("");
-          if (result.updatedShipping) {
-            // Update the state with the edited data
-            const updatedAllShipping = allShipping.map((entry) => {
-              if (entry._id === editingId) {
-                return {
-                  ...entry,
-                  value: area,
-                  delivery_charges: deliveryNumber,
-                };
-              }
-              return entry;
-            });
-            setAllShipping(updatedAllShipping);
-            setEditingId(null); // Exit edit mode
-            setArea("");
-            setDelivery_charges("");
-          }
+          toast.success("Update Shipping")
+          const updatedAllShipping = allShipping.map((entry) => {
+            if (entry._id === editingId) {
+              return {
+                ...entry,
+                value: area,
+                delivery_charges: deliveryNumber,
+              };
+            }
+            return entry;
+          });
+          setAllShipping(updatedAllShipping);
+          setEditingId(null); // Exit edit mode
+          setArea("");
+          setDelivery_charges("");
+
         } else {
           toast.error(result.message);
           setEditingId("");
           setArea("");
           setDelivery_charges("");
         }
+        setLoader(false)
       })
-      .catch((error) => console.log("error", error));
+      .catch((error) => {
+        setLoader(false)
+        console.log("error", error)
+      });
   };
   const cancelEdit = () => {
     setEditingId(null); // Exit edit mode
@@ -267,7 +295,7 @@ function Shipping() {
                       onClick={handleEditSubmit}
                       color="secondary"
                     >
-                      save
+                      {loader ? <CircularProgress size={20} /> : "save"}
                     </Button>
                   </Grid>
                   <Grid xs={6} item>
@@ -294,7 +322,7 @@ function Shipping() {
                     fullWidth
                     onClick={addShipping}
                   >
-                    Add Shipping
+                    {loader ? <CircularProgress size={20} /> : "Add Shipping"}
                   </Button>
                 </Grid>
               )}
@@ -343,15 +371,15 @@ function Shipping() {
                             {allShipping &&
                               allShipping?.map((e, index) => (
                                 <TableRow hover key={e?._id}>
-                                  <TableCell align="left">{e.value}</TableCell>
+                                  <TableCell align="left">{e?.value}</TableCell>
                                   <TableCell align="left">
-                                    Rs {e.delivery_charges}
+                                    Rs {e?.delivery_charges}
                                   </TableCell>
                                   <TableCell align="left">
                                     <Button
                                       variant="contained"
                                       color="error"
-                                      onClick={() => Delete(e._id)}
+                                      onClick={() => handleOpenDelete(e._id)}
                                       style={{ marginTop: 5 }}
                                     >
                                       Delete
@@ -374,6 +402,33 @@ function Shipping() {
                       </TableContainer>
                     </Card>
                   )}
+                  <div style={{ background: "transparent", backdropFilter: "blur(10px)", width: "100%" }}>
+                    <Dialog
+                      open={deleteModal}
+                      onClose={handleCloseDelete}
+                      aria-labelledby="alert-dialog-title"
+                      aria-describedby="alert-dialog-description"
+                      // sx={{ maxWidth: "350px" }}
+                      className="main-order-table glass-morphism"
+                    >
+                      <DialogTitle id="alert-dialog-title" sx={{ textAlign: "center", fontSize: 16, fontWeight: "700", color: "#fff", paddingBottom: 0 }}>
+                        {/* {"This action Will Delete Data permonantly"} */}
+                        Are you sure ?
+                      </DialogTitle>
+                      <DialogContent>
+                        <DialogContentText id="alert-dialog-description" sx={{ textAlign: "center", fontSize: 14, fontWeight: "600", color: "#747373" }}>
+                          This action Will Delete  Data permonantly
+                        </DialogContentText>
+                      </DialogContent>
+                      <DialogActions sx={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+                        <button
+                          onClick={(e) => Delete(currentRow)}
+                          style={{ cursor: "pointer", border: "none", fontSize: 14, fontWeight: "500", color: "#fff", background: "#d32f2f", width: "100px", padding: 10, borderRadius: "5px" }}>{loader ? <CircularProgress size={15} sx={{ color: "#fff" }} /> : "Delete"}</button>
+                        <button onClick={handleCloseDelete} style={{ cursor: "pointer", boxShadow: "rgb(0 0 0 / 0%) 0px 3px 1px -2px, rgb(0 0 0 / 0%) 0px 1px 2px 0px, rgb(0 0 0 / 9%) 0px 1px 5px 0px", border: "none", fontSize: 14, fontWeight: "500", color: "#000", background: "#f7f7f7", width: "100px", padding: 10, borderRadius: "5px" }}>Cancel</button>
+
+                      </DialogActions>
+                    </Dialog>
+                  </div>
                 </Grid>
               </Grid>
             </Container>

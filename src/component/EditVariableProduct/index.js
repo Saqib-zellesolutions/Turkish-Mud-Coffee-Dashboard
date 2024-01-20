@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { BranchFunction, LocalUrl } from "../../config/env";
 
 function EditVariationProduct() {
@@ -24,12 +24,12 @@ function EditVariationProduct() {
   const [name, setName] = useState(location.state.name);
   const [description, setDescription] = useState(location.state.description);
   const [sku, setSku] = useState(location.state.sku);
-  const skuNumber = Number(sku);
+  const skuNumber = sku;
   const [imageData, setImageData] = useState(location.state.image);
   const [variationName, setVariationName] = useState("");
   const [variationDescription, setVariationDescription] = useState("");
   const [variationSku, setVariationSku] = useState("");
-  const variationSkuNumber = Number(variationSku);
+  const variationSkuNumber = variationSku;
   const [variationImageData, setVariationImageData] = useState([]);
   const [variationPrice, setVariationPrice] = useState("");
   const variationPriceNumber = Number(variationPrice);
@@ -94,7 +94,12 @@ function EditVariationProduct() {
     )
       .then((response) => response.json())
       .then((result) => {
-        // window.location.reload();
+        if (result.product) {
+
+          toast.success("Successfully edit product");
+        } else {
+          toast.error(result.message)
+        }
         console.log(result);
         setName("");
         setDescription("");
@@ -191,11 +196,11 @@ function EditVariationProduct() {
                   placeholder="Sku"
                   variant="outlined"
                   fullWidth
-                  type="number"
-                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                  // type="number"
+                  // inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                   onChange={(e) => {
-                    const numericValue = e.target.value.replace(/[^0-9]/g, "");
-                    setSku(numericValue);
+                    // const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                    setSku(e.target.value);
                   }}
                   value={sku}
                 />
@@ -287,17 +292,13 @@ function EditVariationProduct() {
                     placeholder="Variation Sku"
                     variant="outlined"
                     fullWidth
-                    type="number"
-                    inputProps={{
-                      inputMode: "numeric",
-                      pattern: "[0-9]*",
-                    }}
+                    // type="number"
+                    // inputProps={{
+                    //   inputMode: "numeric",
+                    //   pattern: "[0-9]*",
+                    // }}
                     onChange={(e) => {
-                      const numericValue = e.target.value.replace(
-                        /[^0-9]/g,
-                        ""
-                      );
-                      setVariationSku(numericValue);
+                      setVariationSku(e.target.value);
                     }}
                     value={variationSku}
                   />
@@ -356,7 +357,7 @@ function EditVariationProduct() {
                         />
                       </span>
                     ))}
-                  <div>
+                  {/* <div>
                     {selectedGalleryImages && selectedGalleryImages.length ? (
                       <Button
                         variant="contained"
@@ -367,7 +368,7 @@ function EditVariationProduct() {
                         Save Images
                       </Button>
                     ) : null}
-                  </div>
+                  </div> */}
                 </Grid>
                 <Grid xs={6} item>
                   <FormGroup>

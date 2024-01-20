@@ -15,7 +15,7 @@ import {
   useTheme,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
 import { Upload } from "../../config/icon";
 function SimpleProductImage({

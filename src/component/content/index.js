@@ -3,6 +3,11 @@ import {
   Box,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
   IconButton,
   Paper,
@@ -13,7 +18,7 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { BranchFunction, CliftonLocalUrl, LocalUrl } from "../../config/env";
 import EditTwoToneIcon from "@mui/icons-material/EditTwoTone";
 import DeleteTwoToneIcon from "@mui/icons-material/DeleteTwoTone";
@@ -54,9 +59,8 @@ const StyledTextarea = styled(TextareaAutosize)(
   color: ${theme.palette.mode === "dark" ? grey[300] : grey[900]};
   background: ${theme.palette.mode === "dark" ? grey[900] : "#fff"};
   border: 1px solid ${theme.palette.mode === "dark" ? grey[700] : grey[200]};
-  box-shadow: 0px 2px 2px ${
-    theme.palette.mode === "dark" ? grey[900] : grey[50]
-  };
+  box-shadow: 0px 2px 2px ${theme.palette.mode === "dark" ? grey[900] : grey[50]
+    };
 
   &:hover {
     border-color: ${blue[400]};
@@ -64,8 +68,7 @@ const StyledTextarea = styled(TextareaAutosize)(
 
   &:focus {
     border-color: ${blue[400]};
-    box-shadow: 0 0 0 3px ${
-      theme.palette.mode === "dark" ? blue[500] : blue[200]
+    box-shadow: 0 0 0 3px ${theme.palette.mode === "dark" ? blue[500] : blue[200]
     };
   }
 
@@ -83,7 +86,19 @@ function Content() {
   const [sub_heading, setSub_Heading] = useState("");
   const [editIndex, setEditIndex] = useState("");
   const [isloading, setIsLoading] = useState(true);
+  const [loader, setLoader] = useState(false)
   const branch = localStorage.getItem("branchName");
+  const [currentRow, setCurrentRow] = useState("")
+  const [open, setOpen] = useState(false);
+  const handleClose = () => {
+    setOpen(false);
+    setCurrentRow("")
+    setLoader(false)
+  }
+  const handleOpen = (id) => {
+    setOpen(true)
+    setCurrentRow(id)
+  }
   useEffect(() => {
     var requestOptions = {
       method: "GET",
@@ -114,8 +129,10 @@ function Content() {
     setEditIndex(null);
     setHeading("");
     setSub_Heading("");
+    setLoader(false)
   };
   const handleSaveClick = (item) => {
+    setLoader(true)
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
@@ -132,12 +149,8 @@ function Content() {
     };
 
     fetch(
-      `${LocalUrl}/Content/${BranchFunction(branch)}/Update-Content/${
-        item._id
+      `${LocalUrl}/Content/${BranchFunction(branch)}/Update-Content/${item._id
       }/${branch}`,
-      // `${
-      //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-      // }/content/edit-content/${item._id}`,
       requestOptions
     )
       .then((response) => response.json())
@@ -151,25 +164,26 @@ function Content() {
                 : contentItem
             )
           );
-          CancleEdit();
         } else {
           toast.error(result.message);
         }
+        CancleEdit();
       })
       .catch((error) => {
         toast.error(error);
+        CancleEdit()
       });
   };
 
   const handleDeleteClick = (item) => {
+    setLoader(true)
     var requestOptions = {
       method: "DELETE",
       redirect: "follow",
     };
 
     fetch(
-      `${LocalUrl}/Content/${BranchFunction(branch)}/Delete-Content/${
-        item._id
+      `${LocalUrl}/Content/${BranchFunction(branch)}/Delete-Content/${item._id
       }/${branch}`,
       // `${
       //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
@@ -186,9 +200,11 @@ function Content() {
         } else {
           toast.error(result.message);
         }
+        handleClose()
       })
       .catch((error) => {
         toast.error(error);
+        handleClose()
       });
   };
   return isloading ? (
@@ -252,7 +268,7 @@ function Content() {
                     fullWidth
                     value={heading}
                     onChange={(e) => setHeading(e.target.value)}
-                    // Add onChange to update the heading
+                  // Add onChange to update the heading
                   />
 
                   <StyledTextarea
@@ -261,38 +277,41 @@ function Content() {
                     value={sub_heading}
                     onChange={(e) => setSub_Heading(e.target.value)}
                   />
-                  <Box>
-                    <Tooltip title="Save Edit" arrow>
-                      <IconButton
-                        onClick={() => handleSaveClick(e)}
-                        sx={{
-                          "&:hover": {
-                            background: theme.colors.primary.lighter,
-                          },
-                          color: theme.palette.primary.main,
-                        }}
-                        color="inherit"
-                        size="small"
-                      >
-                        <SaveAsIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete Edit" arrow>
-                      <IconButton
-                        onClick={() => CancleEdit()}
-                        sx={{
-                          "&:hover": {
-                            background: theme.colors.error.lighter,
-                          },
-                          color: theme.palette.error.main,
-                        }}
-                        color="inherit"
-                        size="small"
-                      >
-                        <DoDisturbOnIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
+                  {
+                    loader ? <Box> <CircularProgress size={20} /> </Box> : <Box>
+                      <Tooltip title="Save Edit" arrow>
+                        <IconButton
+                          onClick={() => handleSaveClick(e)}
+                          sx={{
+                            "&:hover": {
+                              background: theme.colors.primary.lighter,
+                            },
+                            color: theme.palette.primary.main,
+                          }}
+                          color="inherit"
+                          size="small"
+                        >
+                          <SaveAsIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete Edit" arrow>
+                        <IconButton
+                          onClick={() => CancleEdit()}
+                          sx={{
+                            "&:hover": {
+                              background: theme.colors.error.lighter,
+                            },
+                            color: theme.palette.error.main,
+                          }}
+                          color="inherit"
+                          size="small"
+                        >
+                          <DoDisturbOnIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  }
+
                 </>
               ) : (
                 <>
@@ -324,7 +343,7 @@ function Content() {
                     </Tooltip>
                     <Tooltip title="Delete Content" arrow>
                       <IconButton
-                        onClick={() => handleDeleteClick(e)}
+                        onClick={() => handleOpen(e)}
                         sx={{
                           "&:hover": {
                             background: theme.colors.error.lighter,
@@ -344,6 +363,33 @@ function Content() {
           ))
         )}
       </Box>
+      <div style={{ background: "transparent", backdropFilter: "blur(10px)", width: "100%" }}>
+        <Dialog
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          // sx={{ maxWidth: "350px" }}
+          className="main-order-table glass-morphism"
+        >
+          <DialogTitle id="alert-dialog-title" sx={{ textAlign: "center", fontSize: 16, fontWeight: "700", color: "#fff", paddingBottom: 0 }}>
+            {/* {"This action Will Delete Data permonantly"} */}
+            Are you sure ?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description" sx={{ textAlign: "center", fontSize: 14, fontWeight: "600", color: "#747373" }}>
+              This action Will Delete  Data permonantly
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+            <button
+              onClick={(e) => handleDeleteClick(currentRow)}
+              style={{ cursor: "pointer", border: "none", fontSize: 14, fontWeight: "500", color: "#fff", background: "#d32f2f", width: "100px", padding: 10, borderRadius: "5px" }}>{loader ? <CircularProgress size={15} sx={{ color: "#fff" }} /> : "Delete"}</button>
+            <button onClick={handleClose} style={{ cursor: "pointer", boxShadow: "rgb(0 0 0 / 0%) 0px 3px 1px -2px, rgb(0 0 0 / 0%) 0px 1px 2px 0px, rgb(0 0 0 / 9%) 0px 1px 5px 0px", border: "none", fontSize: 14, fontWeight: "500", color: "#000", background: "#f7f7f7", width: "100px", padding: 10, borderRadius: "5px" }}>Cancel</button>
+
+          </DialogActions>
+        </Dialog>
+      </div>
     </div>
   );
 }

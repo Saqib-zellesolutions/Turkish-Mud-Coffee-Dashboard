@@ -16,7 +16,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import "../../App.css";
 import { BranchFunction, ImageUrl, LocalUrl } from "../../config/env";
 import CustomerModal from "../customer-modal";
@@ -36,6 +36,7 @@ function Order() {
   const [customerDetailModal, setCustomerDetailModal] = useState(false);
   const [newOrderModal, setNewOrderModal] = useState(false);
   const [customerDetailData, setCustomerDetailData] = useState({});
+  const [loader, setLoader] = useState(false)
   const SocketUrl = ImageUrl
   // const SocketUrl = "http://localhost:4000"
   const socket = io(SocketUrl);
@@ -52,20 +53,29 @@ function Order() {
     setModalId(newProduct._id);
   });
   useEffect(() => {
-    var requestOptions = {
-      method: "GET",
-      redirect: "follow",
-    };
+    const GetOrders = () => {
+      setLoader(true)
+      var requestOptions = {
+        method: "GET",
+        redirect: "follow",
+      };
 
-    fetch(
-      `${`${LocalUrl}/Order/${BranchFunction(branch)}/Get-Order/${branch}`}`,
-      requestOptions
-    )
-      .then((response) => response.json())
-      .then((result) => {
-        setOrder(result);
-      })
-      .catch((error) => console.log("error", error));
+      fetch(
+        `${`${LocalUrl}/Order/${BranchFunction(branch)}/Get-Order/${branch}`}`,
+        requestOptions
+      )
+        .then((response) => response.json())
+        .then((result) => {
+          console.log(result);
+          setOrder(result);
+          setLoader(false)
+        })
+        .catch((error) => {
+          setLoader(false)
+          console.log("error", error)
+        });
+    }
+    GetOrders()
   }, [branch]);
 
   const handleOpen = (e, order) => {
@@ -110,9 +120,6 @@ function Order() {
       `${LocalUrl}/Order/${BranchFunction(
         branch
       )}/Update-Order/${id}/${branch}`,
-      // `${
-      //   branch === "Bahadurabad" ? LocalUrl : CliftonLocalUrl
-      // }/OrderPlace/edit-order-place/${id}`,
       requestOptions
     )
       .then((response) => response.json())
@@ -155,22 +162,40 @@ function Order() {
     )
       .then((response) => response.json())
       .then((result) => {
-        toast.success("status updated");
-        window.location.reload();
-        handleNewOrderModalClose();
+        if (result.updatedOrder) {
+
+          toast.success("status updated");
+          window.location.reload();
+        } else {
+          toast.error(result.message)
+          handleNewOrderModalClose();
+
+        }
       })
       .catch((error) => console.log("error", error));
   };
-  return order.length == 0 ? (
+  return loader ? (<Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+    }}
+  >
+    <CircularProgress sx={{ color: "#797C8C" }} />
+  </Box>
+  ) : !order.length ? (
     <Box
       sx={{
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: "100%",
+        mt: 3,
       }}
     >
-      <CircularProgress sx={{ color: "#797C8C" }} />
+      <Typography component="h1" variant="h4">
+        Data Not Found
+      </Typography>
     </Box>
   ) : (
     <div
